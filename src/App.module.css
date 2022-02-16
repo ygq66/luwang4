@@ -1,0 +1,90 @@
+.App {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.left {
+  width: 250px;
+  height: 100%;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  overflow: hidden;
+}
+
+.left input {
+  width: calc(100% - 40px);
+}
+
+.right {
+  width: 250px;
+  height: 100%;
+  overflow-y: auto;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  right: 0;
+}
+
+/* 文件列表 */
+.fileList {
+  height: calc(50% - 75px);
+  background: #b9eafc;
+  overflow: auto;
+  border: 1px solid gray;
+  position: relative;
+}
+
+.shapeList {
+  height: calc(50% - 75px);
+  background: #b9eafc;
+  overflow: auto;
+  border: 1px solid gray;
+}
+
+.apiTool {
+  height: 1000px;
+  border: 1px solid black;
+}
+
+.apiToolItem {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.apiToolItem > span {
+  flex: 1;
+}
+
+.apiToolItem > input, .apiToolItem > textarea {
+  flex: 3;
+}
+
+.main {
+  height: 100%;
+  width: calc(100% - 500px);
+  margin: 0 250px;
+  display: inline-block;
+  background: lightgreen;
+  overflow: hidden;
+  position: relative;
+  /*padding: 0 10px;*/
+}
+
+.mainTabs {
+  height: 100%;
+}
+
+
+/*设置*/
+.setting {
+  position: fixed;
+  left: 50%;
+  top: 20%;
+  transform: translate(-50%);
+  z-index: 100;
+}
+

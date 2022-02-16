@@ -1,0 +1,19 @@
+.rightMenu {
+  z-index: 100;
+  background: white;
+  /*border-radius: 5px;*/
+  border-top: 1px solid #bebebe;
+  border-left: 1px solid #bebebe;
+  border-right: 1px solid #282828;
+  border-bottom: 1px solid black;
+  /*box-shadow: 5px 5px 5px black;*/
+}
+
+.menuItem {
+  padding: 5px 10px;
+}
+
+.menuItem:hover {
+  background: #00aa88;
+  cursor: pointer;
+}
