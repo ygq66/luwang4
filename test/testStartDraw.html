@@ -1,0 +1,770 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>mapvision view3d api demo </title>
+
+    <script type="text/javascript" src="../public/mapvision3d.min.js"></script>
+
+    <style>
+        body.hide:before,
+        body.hide .begin {
+            display: none;
+        }
+
+        .btn {
+            position: fixed;
+            right: 20px;
+            top: 10px;
+            color: #fff;
+            background: #0a8;
+            border: none;
+            padding: 8px 8px;
+            line-height: 1;
+            outline: none;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 100;
+            /* display: none; */
+        }
+
+        .panel {
+            right: auto;
+            left: 0px;
+            top: auto;
+            bottom: 20px;
+            width: 100%;
+            height: 130px;
+            color: #fff;
+            background: #0a8;
+        }
+
+        ul {
+            list-style-type: none;
+            counter-reset: sectioncounter;
+            position: fixed;
+            right: 20px;
+            color: #fff;
+            border: none;
+            /* line-height: 1; */
+            outline: none;
+            z-index: 80;
+        }
+
+        ul li div {
+            list-style-position: outside;
+        }
+
+        ul li div:before {
+            content: counter(sectioncounter) "、";
+            counter-increment: sectioncounter;
+        }
+
+        ul li div {
+            margin-top: 8px;
+            color: #fff;
+            background: #0a8;
+            width: auto;
+            border: none;
+            padding: 6px 6px;
+            line-height: 1;
+            outline: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        ul li div:hover {
+            background: rgb(219, 210, 83);
+        }
+
+        /* 自定义云渲染DOM, video 大小 位置 */
+        #mapvision3d {
+            position: fixed;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 1;
+            background: #000;
+        }
+
+        #mapvision3d video {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: fill;
+        }
+    </style>
+</head>
+
+<body>
+<div id="mapvision3d"></div>
+<div class="btn panel">
+    操作步骤：
+    <p>
+        创建对象: 1、首先启动创建的某一类对象 2、然后鼠标在地图上按下点击（不要释放），然后拖动鼠标到适合的位置 3、鼠标按键弹起，会接受返回的创建对象信息 4、最后一定要 “结束编辑”,保存编辑最后状态。
+    </p>
+    <p>
+        编辑对象: 1、首先启动编辑功能 2、鼠标在地图选中想要编辑的对象，然后拖动鼠标到适合的位置 3、鼠标按键弹起，会接受返回的创建对象信息 4、最后一定要 “结束编辑”,保存编辑最后状态。
+    </p>
+</div>
+<ul>
+    <li>
+        <div onclick="btn1Click()">连接云服务</div>
+    </li>
+    <li>
+        <div onclick="btn1_2Click()">点选对象</div>
+    </li>
+    <li>
+        <div onclick="btn2Click()">启动编辑/选择对象</div>
+    </li>
+    <li>
+        <div onclick="btn3Click()">结束编辑</div>
+    </li>
+    <li>
+        <div onclick="btn4Click()">启动创建(图像1)</div>
+    </li>
+    <li>
+        <div onclick="btn5Click()">启动创建(图像2)</div>
+    </li>
+    <li>
+        <div onclick="btnClickImageLabel()">启动创建(imageLabel)</div>
+    </li>
+    <li>
+        <div onclick="btn6Click()">启动创建(球体)</div>
+    </li>
+    <li>
+        <div onclick="btn7Click()">启动创建(圆形)</div>
+    </li>
+    <li>
+        <div onclick="btn8Click()">启动创建(规则多边形)</div>
+    </li>
+    <li>
+        <div onclick="btn9Click()">启动创建(模型)</div>
+    </li>
+    <li>
+        <div onclick="btn10Click()">启动创建(骨骼模型)</div>
+    </li>
+    <li>
+        <div onclick="btn11Click()">启动创建(多边形)</div>
+    </li>
+    <li>
+        <div onclick="btn15Click()">启动创建(多边形边线)</div>
+    </li>
+    <li>
+        <div onclick="btn15WDClick()">启动创建(多边形围挡)</div>
+    </li>
+    <li>
+        <div onclick="btn14Click()">启动创建(折线)</div>
+    </li>
+    <li>
+        <div onclick="btn12Click()">启动创建(文本)</div>
+    </li>
+    <li>
+        <div onclick="btn16Click()">启动创建(网页公告板)</div>
+    </li>
+    <li>
+        <div onclick="btn18Click()">BUG测试-启动点击地图</div>
+    </li>
+    <li>
+        <div onclick="btn19Click()">BUG测试-创建对象</div>
+    </li>
+    <li>
+        <div onclick="btn19ClickCreateDelete()">BUG测试-循环创建删除</div>
+    </li>
+    <li>
+        <div onclick="btn13Click()">清除所有</div>
+    </li>
+    <li>
+        <div onclick="btn17Click()">清除指定类型</div>
+    </li>
+</ul>
+
+
+<script>
+  "use strict";
+
+  let view3d = new MapVision.View3d({
+    "id":"mapvision3d",
+    "url":"http://127.0.0.1:19901/aimapvision3d",
+    "projectId":"05cf175a9aef4c0ea925deca3d9cce98",
+    "token":"c29b3043e2245e7d80128a795bc4db5a"
+  });
+
+  /*
+   ** 打开连接
+   */
+  function btn1Click() {
+    // 开始绘制
+
+      let boundaryObj = {
+        gid: 'BOUND',
+        // type: 'polygon',
+        // color: '#0000ff',
+        // linewidth: 2.0, // 边线宽度 单位米
+        // linestyle: 'highlight',
+        // linecolor: '#ff0000',
+        // points: []
+        type: 'linestring',
+        color: '#ff0f00',
+        points: []
+      }
+
+      // view3d.OverLayerStartEdit(obj, res => {
+      //   console.log('绘制路网边界', res.points);
+      //   settingService.setStateByObj({drawBoundary: res.points});
+      // });
+
+      console.log('右键结束绘制');
+      if (view3d) {
+
+        window.addEventListener('mousedown', function drawRightKeyDown(e) {
+          if (!view3d) return;
+          if (e.button === 2) { // 右击
+            view3d.OverLayerStopEdit();
+            setTimeout(() => {
+              window.removeEventListener('mousedown', drawRightKeyDown)
+              view3d.SetMousePositionCallback(null)
+            }, 1000)
+            console.log('结束绘制')
+          }
+        });
+        view3d.SetMousePositionCallback(e => {
+          console.log('绘制点击事件', e)
+          boundaryObj.points.push(e);
+          e.z += 5
+          if (boundaryObj.points.length >= 3) {
+            view3d.OverLayerCreateObject(boundaryObj)
+          } else if (boundaryObj.points.length > 3) {
+            view3d.OverLayerUpdateObject(boundaryObj)
+          }
+        })
+      }
+  }
+
+  view3d.Open(res => {
+    view3d.OverLayerRemoveAll();
+    // res = 'connected'
+    console.log("MapVision View3d " + res)
+  });
+
+  // 点选对象
+  function btn1_2Click() {
+    // 过滤 对象  prefix 对象名称前缀   ，path 路径前缀
+    let paramers = {
+      prefix: '*',//MP,TEMP,JZ,V
+      path: '',
+      // unit: 'm', // 场景返回数据单位， 默认厘米   输入m返回为米   其他值为厘米
+      speedroute: 10
+    };
+
+    view3d.SetParameters(paramers);
+
+    view3d.SetMouseCallback(res => {
+      let strObj = JSON.stringify(res);
+      console.log(strObj);
+      // view3d.UpdateObjectVisible(res.gid, false);
+      // alert(strObj);
+    });
+  }
+
+  function btn2Click() {
+    view3d.OverLayerSelectObjectEdit(res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert('SelectObject=' + strObj);
+    });
+  }
+
+  function btn3Click() {
+    view3d.OverLayerStopEdit();
+  }
+
+  function btn4Click() {
+    const obj = {
+      type: 'image', // 10102  或  image
+      style: 'yellow_blank',
+      scale: 8,
+      attr: { // attr 是一个json对象属性可自定义
+        name: '属性自定义',
+        desc: '描述'
+      }
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+
+  function btn5Click() {
+    const obj = {
+      type: 'image', // 10102  或  image
+      style: 'red_blank',
+      scale: 20,
+      attr: { // attr 是一个json对象属性可自定义
+        name: '属性自定义2',
+        desc: '描述2'
+      }
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btnClickImageLabel() {
+    const obj = {
+      // gid: 'CUSTOM_ID', 		// 自定义gid，可以设置自定义前缀，用于点选匹配不同的对象
+      type: 'imagelabel', 		// 10102  或  image
+      iconstyle: "default2.png", 	// 资源图片里面是否有这个文件
+      text: "中华人民共和国CHINA",      			// 文本内容
+      fontcolor: "#FFFFFF",      // 文本颜色
+      fontbg: "#00ff00",         // 文本背景颜色
+      fontsize: 100.0,           // 文本大小
+      style: "white",             // 立柱的颜色样式
+      pwidth: 2,    				// 立柱的宽度 单位米
+      pheight: 80.0, 			// 立柱的高度 单位米
+      scale: 1,                   // 整个对象的缩放比例
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+
+  function btn6Click() {
+    const obj = {
+      type: 'sphere',
+      style: "red",
+      color: "#00ff00",
+      radius: 100,
+      scale: 1
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn7Click() {
+    const obj = {
+      type: 'circle',
+      style: "red",
+      color: "#00ff00",
+      radius: 200
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn8Click() {
+    const obj = {
+      type: 'regularpolygon',
+      style: "red",
+      color: "#ff0000",
+      radius: 200,
+      num: 6
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn9Click() {
+    const obj = {
+      type: 'model',
+      style: "red",
+      color: "#00ff00",
+      filename: "cylinder", // box, capsule, cone, cube, cylinder, pipe, pyramid, sphere, capsule
+      radius: 200,
+      scale: 1
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn10Click() {
+    const obj = {
+      type: 'skeleton',
+      filename: "person",
+      scale: 1
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn11Click() {
+    const obj = {
+      type: 'polygon',
+      color: '#ff0000',
+      points: []
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  // 创建多边形边线
+  function btn15Click() {
+    const obj = {
+      type: 'polygon',
+      color: '#0000ff',
+      linewidth: 2.0, // 边线宽度 单位米
+      linestyle: 'highlight',
+      linecolor: '#ff0000',
+      points: []
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn15WDClick() {
+    const obj = {
+      type: 'polygon3d',
+      style: 'green', // 基础样式
+      color: '#0000ff', // 基础样式颜色
+      linewidth: 5.0, // 边线宽度 单位米
+      linestyle: 'green',// 边线样式，优先级高于linecolor
+      linecolor: '#0000ff',// 边线颜色，linestyle=null才会起作用
+      linevisible: true, // 边线启用
+      roofvisible: false, // 顶部面是否启用
+      roofheight: 100.0,  // 顶部面的高度  单位米
+      edgestyle: "sim_arraw",   // 边缘立面样式，优先级高于edgecolor
+      edgecolor: "#0000ff", // 边缘立面颜色，edgestyle=null才会起作用
+      edgeheight: 100.0, // 边缘立面高度  单位米
+      points: []
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn14Click() {
+    const obj = {
+      type: 'linestring',
+      color: '#ff0f00',
+      points: []
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn12Click() {
+    const obj = {
+      type: 'label',
+      text: 'T5庚彬斌滨濒聊觊龃魍耄耋',
+      font: '黑体',
+      fontcolor: '#FF0000',
+      fontsize: 500.0,
+      halign: 'left',  // left center right
+      valign: 'top'  // bottom center top
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn16Click() {
+    const _index = Math.floor(Math.random() * 10); // 可均衡获取 0 到 9 的随机整数。
+    console.log("random index = " + _index);
+    const _urls = [
+      "http://www.aimapvision.com/",
+      "http://www.aimapvision.com/mapvision3d/popup/index.html",
+      "https://map.baidu.com/",
+      "https://cn.bing.com/maps",
+      "https://www.amap.com/",
+      "https://map.tianditu.gov.cn/",
+      "http://www.aimapvision.com/mapvision3d/popup/index.html",
+      "http://www.aimapvision.com/mapvision3d/popup/index.html",
+      "http://www.aimapvision.com/mapvision3d/",
+      "http://www.aimapvision.com/mapvision3d/popup/index.html"
+    ]
+    const obj = {
+      type: 'webbrowser',
+      url: _urls[_index],
+      screen: true,      // 屏幕坐标系 or 世界场景坐标系
+      scale: 1.0,        // 缩放比例
+      width: 500,       // 宽度（屏幕：像素   世界场景：米）
+      height: 600       //  高度（屏幕：像素   世界场景：米）
+    };
+
+    view3d.OverLayerStartEdit(obj, res => {
+      let strObj = JSON.stringify(res);
+
+      let myDate = new Date()
+
+      console.log(myDate.toDateString(), strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn13Click() {
+    view3d.OverLayerRemoveAll();
+  }
+
+  function btn17Click() {
+    let types = [10101, 10102, 10302, 10301]; // 目前支持类型码，参考如下
+    view3d.OverLayerRemoveAll(types);
+
+      /*
+       MCT_POINT = 10100,			// 点  球体
+       MCT_LINESTRING = 10200,		// 折线  管线圆柱
+       MCT_POLYGON = 10300,		// 面  立体面
+
+       MCT_TEXT_LABEL = 10101,		// 文本
+       MCT_IMAGE = 10102,			// 图片
+       MCT_IMAGE_LABEL = 10103,	// ----图标 + 文本
+       MCT_ARRAW = 10104,			// ----3D箭头
+
+       MCT_MODEL = 10108,			// 模型
+       MCT_MODEL_LABLE = 10109,	// 模型 + 文本
+       MCT_SKELETON = 10110,		// 骨骼动画模型
+
+       MCT_REGULAR_POYLGON = 10301,// 规则多边形   等边三角形，四边形，五边形，六边形 。。。。。等
+       MCT_CIRCLE = 10302,			// 圆形
+       MCT_TRIANGLE = 10303,		// 三角形triangle
+       MCT_RECTANGLE = 10304,		// 矩形
+       MCT_ELLIPSE = 10309,		// 椭圆
+
+       MCT_SHAPE = 10320,				// 形状
+       MCT_SHAPE_BOX = 10321,			// 长方体
+       MCT_SHAPE_PYRAMID = 10323,		// 金字塔
+       MCT_SHAPE_CONE = 10325,			// 圆锥
+       MCT_SHAPE_CYLINDER = 10327,		// 圆柱
+       MCT_SHAPE_SHPERE = 10329,		// 球体
+       MCT_SHAPE_SHPERE_HALF = 10331,	// 半球体
+
+       MCT_WEB_BROWSER = 12000,	// web浏览器
+
+       MCT_ROUTE = 1091,			// 道路/路径
+       */
+  }
+
+  function btn18Click() {
+    let paramers = {
+      prefix: 'TEMP,JZ',
+      path: '',
+      speedroute: 10
+    };
+
+    view3d.SetParameters(paramers);
+
+    view3d.SetMouseCallback(res => {
+      let strObj = JSON.stringify(res);
+      strObj = "SetMouseCallback:" + strObj;
+      console.log(strObj);
+      // alert(strObj);
+    });
+  }
+
+  function btn19Click() {
+    let objx = 300;
+    let objy = 300;
+
+    // 注意,此功能为异步操作
+    const obj = {
+      type: 'model',
+      scale: 1.0,    // 缩放比例
+      filename: 'capsule',   // 模型文件名称： box, capsule, cone, cube, cylinder, pipe, pyramid, sphere
+      // style : 'red',
+      color: '#FF0000',
+      location: {
+        x: objx,
+        y: objy,
+        z: 1300,
+        pitch: 0,   // 俯仰角 0——90度
+        yaw: 0,    // 偏航角 0-360度
+        roll: 0     // 翻滚角
+      }
+    };
+
+    view3d.OverLayerCreateObject(obj, res => {
+      let strObj = JSON.stringify(res);
+      strObj = "OverLayerCreateObject:" + strObj;
+      console.log(strObj);
+    });
+  }
+
+  function testDelete(gid) {
+    if (view3d.IsClose()) return;
+    console.log("testDelete = " + gid);
+    view3d.OverLayerRemoveObjectById(gid);
+  }
+
+  function testDeleteAll() {
+    if (view3d.IsClose()) return;
+    console.log("testDeleteAll");
+    view3d.OverLayerRemoveAll();
+    setTimeout('testDeleteAll()', 30000);
+  }
+
+  let delObjIds = "";
+
+  function testDeleteAll2() {
+    if (view3d.IsClose()) return;
+    console.log("testDeleteAll2");
+    let objIds = delObjIds.split(',');
+    delObjIds = "";
+    console.log(objIds);
+    view3d.OverLayerRemoveObjectsById(objIds);
+    // for(let i=0;i<objIds.length;i++) {
+    // 	if(objIds[i]) {
+    // 		view3d.OverLayerRemoveObjectById(objIds[i]);
+    // 	}
+    // }
+  }
+
+  function testCreateDelete() {
+    if (view3d.IsClose()) return;
+    // console.log("testCreateDelete");
+    const _index = Math.floor(Math.random() * 10);
+    // 注意,此功能为异步操作
+    // 注意,此功能为异步操作
+    // const obj = {
+    // 	type: 'image', // 10102  或  image
+    // 	style: 'red_' + (Math.floor(Math.random()*8) + 1),
+    // 	scale: 8,
+    // 	location: {
+    // 		x : -16000 + Math.floor(Math.random()*2000),
+    // 		y : 19500 + Math.floor(Math.random()*2500),
+    // 		z : 100,
+    // 		pitch : 0,  // 俯仰角 0——90度
+    // 		yaw : 0,    // 偏航角 0-360度
+    // 		roll : 0    // 翻滚角
+    // 	}
+    // };
+    const obj = {
+      type: 'polygon',
+      // style: 'red',
+      color: '#FF0000',
+      points: [
+        {x: -16000.793591 + Math.floor(Math.random() * 2000), y: 19452.135925 + Math.floor(Math.random() * 2000), z: 132.5},
+        {x: -16518.793591 + Math.floor(Math.random() * 2000), y: 19402.135925 + Math.floor(Math.random() * 2000), z: 132.5},
+        {x: -16230.793591 + Math.floor(Math.random() * 2000), y: 20002.135925 + Math.floor(Math.random() * 2000), z: 132.5}
+      ]
+    };
+
+    view3d.OverLayerCreateObject(obj, res => {
+      let strObj = JSON.stringify(res);
+      console.log("CreateObject: success", strObj);
+      // view3d.OverLayerRemoveObject(res);
+      // setTimeout('testDelete("'+res.gid+'")', 1200) ;
+      // console.log("Delete: success");
+    });
+
+    setTimeout('testCreateDelete()', 100);
+
+  }
+
+  function btn19ClickCreateDelete() {
+    // testCreateDelete();
+    // testDeleteAll();
+    let jsonStr = '{"code":0,"msg":"success","data":[{"id":"C2366F97CBE64A4218B897689E7EDA6D","room_name":"0101","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D3","name":"","type":10300,"typename":"polygon","style":"","color":"#ff0000","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-7463.9130859375,"y":5743.5087890625,"z":39.9998779296875},{"x":-7429.6728515625,"y":6700.927734375,"z":30},{"x":-6911.1435546875,"y":6675.2802734375,"z":29.9998779296875},{"x":-6984.84765625,"y":5693.5927734375,"z":30}],"linestyle":"","linecolor":"","center":{"x":-7173.88720703125,"y":6594.6279296875,"z":1347.500732421875,"pitch":75.99999237060547,"yaw":-94,"roll":0.00011293207353446633}},"order":1},{"id":"F042C1803B76B4402FE86356FCAD2D19","room_name":"0102","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D10","name":"","type":10300,"typename":"polygon","style":"","color":"#ffff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-6870.984375,"y":5651.2158203125,"z":40},{"x":-6882.1943359375,"y":5672.6494140625,"z":29.9998779296875},{"x":-6823.73779296875,"y":6667.97705078125,"z":29.999755859375},{"x":-6320.42822265625,"y":6641.58203125,"z":30},{"x":-6400.86181640625,"y":5632.18896484375,"z":29.9998779296875}],"linestyle":"","linecolor":"","center":{"x":-6473.94287109375,"y":6097.46826171875,"z":1251.5179443359375,"pitch":83.00001525878906,"yaw":-93.00003814697266,"roll":-0.0005464357673190534}},"order":2},{"id":"BB94EB4A83A4E641111822A9C56AB5A6","room_name":"0103","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D15","name":"","type":10300,"typename":"polygon","style":"","color":"#00ffff","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-6294.28271484375,"y":5608.5966796875,"z":40},{"x":-6238.0869140625,"y":6640.4169921875,"z":29.9998779296875},{"x":-5703.99853515625,"y":6613.4443359375,"z":30},{"x":-5775.259765625,"y":5584.5771484375,"z":30}],"linestyle":"","linecolor":"","center":{"x":-5960.646484375,"y":6400.8564453125,"z":1318.8486328125,"pitch":83.25714111328125,"yaw":-92.88877868652344,"roll":-0.0007562385872006416}},"order":15},{"id":"14B5D92D9CC9FA4022D88EDFDC766DDB","room_name":"0104","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D22","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-5696.5419921875,"y":5577.39453125,"z":39.9998779296875},{"x":-5633.9501953125,"y":6593.80712890625,"z":30.0001220703125},{"x":-5110.904296875,"y":6565.80078125,"z":29.999755859375},{"x":-5176.98681640625,"y":5570.6630859375,"z":29.9998779296875}],"linestyle":"","linecolor":"","center":{"x":-5308.61328125,"y":6328.40185546875,"z":1471.8099365234375,"pitch":81.99996185302734,"yaw":-91.99998474121094,"roll":-0.000785227632150054}},"order":16},{"id":"F7003C73849CFC4452C9F9D8E5E70C9A","room_name":"0105","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D28","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-5104.9970703125,"y":5545.81884765625,"z":40.0001220703125},{"x":-5032.68505859375,"y":6569.4072265625,"z":29.9998779296875},{"x":-4513.96923828125,"y":6549.72705078125,"z":30.0001220703125},{"x":-4574.8427734375,"y":5536.66015625,"z":30}],"linestyle":"","linecolor":"","center":{"x":-4737.61376953125,"y":6315.41015625,"z":1303.11083984375,"pitch":82.41914367675781,"yaw":-92.55558776855469,"roll":-0.004814901854842901}},"order":17},{"id":"DDBD92DC1E678747C679A410DB1601DB","room_name":"0106","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D14","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-4503.453125,"y":5500.61474609375,"z":39.9998779296875},{"x":-4442.84228515625,"y":6535.16748046875,"z":30},{"x":-3907.1171875,"y":6507.14013671875,"z":30},{"x":-3975.60107421875,"y":5481.8173828125,"z":30.0001220703125}],"linestyle":"","linecolor":"","center":{"x":-4174,"y":6255,"z":1449,"pitch":84.00003051757812,"yaw":-92.99995422363281,"roll":-0.0002940433332696557}},"order":25},{"id":"3F35F210880DC742EC8897850DBD4D62","room_name":"0107","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D6","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-3893.85546875,"y":5474.876953125,"z":39.9998779296875},{"x":-3840.985107421875,"y":6496.51123046875,"z":30.000244140625},{"x":-3303.6767578125,"y":6470.576171875,"z":29.9998779296875},{"x":-3376.49853515625,"y":5434.37353515625,"z":29.9998779296875}],"linestyle":"","linecolor":"","center":{"x":-3498,"y":6184,"z":1550,"pitch":85.93147277832031,"yaw":-93.22166442871094,"roll":-0.0020938271190971136}},"order":110},{"id":"92DC3C29C742B4470D89A7CC44DA4471","room_name":"0108","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_F12","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-3303.29833984375,"y":5432.97265625,"z":40.0001220703125},{"x":-3243.5546875,"y":6467.60205078125,"z":29.9998779296875},{"x":-2720.42529296875,"y":6440.26953125,"z":29.9998779296875},{"x":-2794.063232421875,"y":5399.12451171875,"z":29.9998779296875}],"linestyle":"","linecolor":"","center":{"x":-2870.8662109375,"y":6124.5986328125,"z":1650.000244140625,"pitch":85.00004577636719,"yaw":-93.0000228881836,"roll":0.00001959188921318855}},"order":111},{"id":"C98912958D67D14AEC192AA607F81374","room_name":"0109","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D9","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-2706.781005859375,"y":5413.83154296875,"z":40},{"x":-2641.30712890625,"y":6429.0693359375,"z":30},{"x":-2119.837890625,"y":6401.279296875,"z":29.9998779296875},{"x":-2193.59326171875,"y":5405.158203125,"z":30.000244140625}],"linestyle":"","linecolor":"","center":{"x":-2239.23193359375,"y":6060.60595703125,"z":1168.04541015625,"pitch":84.1230239868164,"yaw":-94.44598388671875,"roll":0.0000500292590004392}},"order":113},{"id":"2A7E1231B3170A43BC18308EECD800EC","room_name":"0110","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D94","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-2110.027099609375,"y":5368.650390625,"z":40},{"x":-2035.6954345703125,"y":6376.80419921875,"z":30},{"x":-1533.6024169921875,"y":6357.3828125,"z":30},{"x":-1612.753173828125,"y":5360.83935546875,"z":30.0001220703125}],"linestyle":"","linecolor":"","center":{"x":-1745.048583984375,"y":6256.97607421875,"z":1503.411376953125,"pitch":78.25315856933594,"yaw":-93.77970123291016,"roll":-0.0002767804835457355}},"order":114},{"id":"CF650BDD6205364F49C944BF2AC3A253","room_name":"0111","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D16","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-1501.8699951171875,"y":5350.4580078125,"z":40},{"x":-1432.372802734375,"y":6352.52587890625,"z":29.999755859375},{"x":-932.3687744140625,"y":6333.287109375,"z":29.999755859375},{"x":-989.79541015625,"y":5316.6875,"z":29.9998779296875}],"linestyle":"","linecolor":"","center":{"x":-1161.239990234375,"y":6200.6943359375,"z":1503.4105224609375,"pitch":78.25315856933594,"yaw":-93.77970123291016,"roll":-0.0002767804835457355}},"order":115},{"id":"F78E82D984B3BA43ADCA9E7897DB904C","room_name":"0112","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D18","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-895.6251220703125,"y":5322.85107421875,"z":40.0001220703125},{"x":-836.33203125,"y":6318.47802734375,"z":29.99951171875},{"x":-353.18707275390625,"y":6292.4091796875,"z":29.9998779296875},{"x":-410.76251220703125,"y":5307.96533203125,"z":30}],"linestyle":"","linecolor":"","center":{"x":-551.9067993164062,"y":6157.900390625,"z":1503.408447265625,"pitch":78.25315856933594,"yaw":-93.77970123291016,"roll":-0.0002767804835457355}},"order":116},{"id":"BB61FCFCE1026D461398BAB02EEF6875","room_name":"0113","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D23","name":"","type":10300,"typename":"polygon","style":"","color":"#00ff00","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-299.8632507324219,"y":5284.57763671875,"z":39.9998779296875},{"x":-253.88125610351562,"y":6289.048828125,"z":29.999755859375},{"x":252.591552734375,"y":6281.1240234375,"z":29.9998779296875},{"x":215.45387268066406,"y":5228.154296875,"z":30}],"linestyle":"","linecolor":"","center":{"x":32.539039611816406,"y":6167.63818359375,"z":1503.4063720703125,"pitch":78.25315856933594,"yaw":-93.77970123291016,"roll":-0.0002767804835457355}},"order":117},{"id":"9309AA19E9DBBA492E98FA3623DA17E3","room_name":"0114","floor_id":"JZ1#F1","build_id":"JZ1","positions":{"gid":"TEMP_SHAPE_D2","name":"","type":10300,"typename":"polygon","style":"","color":"#ff0000","location":{"x":0,"y":0,"z":0,"pitch":0,"yaw":0,"roll":0},"attr":null,"linewidth":0,"points":[{"x":-591.3643798828125,"y":315.3018798828125,"z":40},{"x":-532.1142578125,"y":1346.71240234375,"z":30},{"x":-0.2398681640625,"y":1311.094970703125,"z":29.999755859375},{"x":-62.51411437988281,"y":285.16632080078125,"z":30.000244140625}],"linestyle":"","linecolor":"","center":{"x":-258.1080322265625,"y":1039.950927734375,"z":2267.5283203125,"pitch":87.04778289794922,"yaw":-92.33319854736328,"roll":-0.00009946089994627982}},"order":118}]}';
+    let jsonVal = JSON.parse(jsonStr);
+    let datas = jsonVal.data;
+    for (let i = 0; i < datas.length; i++) {
+      let obj = datas[i].positions;
+
+      view3d.OverLayerCreateObject(obj, res => {
+        delObjIds += res.gid + ',';
+        let strObj = JSON.stringify(res);
+        console.log("CreateObject: success", strObj);
+      });
+    }
+    console.log("objIds= = " + delObjIds);
+    setTimeout('testDeleteAll2()', 2000);
+    setTimeout('btn19ClickCreateDelete()', 3200);
+  }
+
+</script>
+</body>
+</html>

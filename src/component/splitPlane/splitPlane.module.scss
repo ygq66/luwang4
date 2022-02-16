@@ -1,0 +1,8 @@
+.splitPlane {
+  .splitLine {
+    height: 10px;
+    background-color: red;
+    cursor: row-resize;
+    user-select: none;
+  }
+}

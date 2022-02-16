@@ -1,0 +1,15 @@
+.route_item {
+  display: flex;
+  width: 100%;
+}
+
+.route_txt {
+  flex: 0 0 auto;
+  margin-right: 5px;
+  padding: 2px;
+  word-wrap: break-word;
+  border: 1px solid blueviolet;
+  box-sizing: border-box;
+  max-height: 150px;
+  overflow-y: scroll;
+}

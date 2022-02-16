@@ -1,0 +1,43 @@
+.left {
+  position: fixed;
+  left: 10px;
+  top: 10px;
+  width: 200px;
+  height: 100%;
+  border: 1px solid black;
+  z-index: 1000;
+  overflow: auto;
+  padding: 50px 0;
+}
+
+.title {
+  background-color: red;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  margin-bottom: 5px;
+  overflow: hidden;
+  height: 30px;
+  user-select: none;
+}
+
+.title > p {
+  cursor: pointer;
+  color: white;
+}
+
+.left_item {
+  margin-bottom: 5px;
+  padding: 5px;
+  cursor: pointer;
+  background: #0095ff;
+}
+
+.right {
+  position: fixed;
+  right: 10px;
+  top: 10px;
+  width: 200px;
+  height: 100%;
+  border: 1px solid black;
+  z-index: 2000;
+}

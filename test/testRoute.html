@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>mapvision view3d api demo </title>
+
+    <script type="text/javascript" src="http://www.aimapvision.com/mapvision3d/static/js/cookie.js"></script>
+
+    </script><script type="text/javascript" src="http://www.aimapvision.com/mapvision3d/static/js/adapter.js"></script>
+    <script type="text/javascript" src="http://www.aimapvision.com/mapvision3d/static/js/mapvision3d.min.js"></script>
+
+    <style>
+        body.hide:before,
+        body.hide .begin {
+            display: none;
+        }
+
+        ul {
+            list-style-type:none;counter-reset:sectioncounter;
+            position: fixed;
+            right: 20px;
+            color: #fff;
+            border: none;
+            /* line-height: 1; */
+            outline: none;
+            z-index: 80;
+        }
+        ul li div{
+            list-style-position:outside;
+        }
+        ul li div:before {
+            content:counter(sectioncounter) "、";
+            counter-increment:sectioncounter;
+        }
+        ul li div {
+            margin-top: 8px;
+            color: #fff;
+            background: #0a8;
+            width: auto;
+            border: none;
+            padding: 6px 6px;
+            line-height: 1;
+            outline: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        ul li div:hover {
+            background: rgb(219, 210, 83);
+        }
+
+        /* 自定义云渲染DOM, video 大小 位置 */
+        #mapvision3d {
+            position: fixed;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 1;
+            background: #000;
+        }
+
+        #mapvision3d video {
+            display: block;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: fill;
+        }
+    </style>
+</head>
+
+<body>
+<div id="mapvision3d"></div>
+<ul>
+    <li>
+        <div  onclick="btn1Click()">连接云服务</div>
+    </li>
+    <li>
+        <div  onclick="btn2Click()">路径绘制1</div>
+    </li>
+    <li>
+        <div  onclick="btn2_2Click()">路径绘制2</div>
+    </li>
+    <li>
+        <div  onclick="btn3Click()">路径绘制(样式)</div>
+    </li>
+    <li>
+        <div  onclick="btn4Click()">开始路径</div>
+    </li>
+    <li>
+        <div  onclick="btn5Click()">暂停</div>
+    </li>
+    <li>
+        <div  onclick="btn6Click()">继续</div>
+    </li>
+    <li>
+        <div  onclick="btn7Click()">停止</div>
+    </li>
+    <li>
+        <div  onclick="btn8Click()">清除</div>
+    </li>
+</ul>
+
+<script>
+  "use strict";
+
+  var connStr = Cookie.get("Conn-Str");
+  var connJSON = JSON.parse(connStr);
+  if (connStr) {
+    connJSON = JSON.parse(connStr);
+  } else {
+    connJSON = {
+      id: "mapvision3d",
+      url: "http://127.0.0.1:19901/aimapvision3d",
+      projectId: "c7a3961deca3455bb1f669eebb1870b6",
+      token: "c29b3043e2245e7d80128a795bc4db5a"
+    }
+  }
+  // console.log("connStr="+connStr)
+  // 授权信息登录服务管理平台，可以获取工程ID和授权token
+  if(view3d) {
+    view3d.Close();
+  }
+  var view3d = null;
+  view3d = new MapVision.View3d(connJSON);
+  if (connStr && connJSON.url && connJSON.projectId && connJSON.token) {
+  }
+  view3d.Open();
+
+
+  var isCreated = false;
+  var routeData = {
+    "visible": true,  // 显示隐藏路径
+    "style": "sim_arraw",  // 路径的样式  sim_arraw, sim_dot, sim_dashed, sim_flash, sim_scan, sim_dot
+    "showloc": true, // 是否显示起始点图标loc
+    "width": 100, // 路径的宽度，单位米
+    "speed": 2000,// 路径的播放，默认20   厘米/每秒   米/秒
+    "distance": 1500,// 可视距离  > 0.01 单位米
+    "pitch": 35,// 俯仰角， 范围：0——90度
+    "geom": [
+      //  	{floor: "F1", id: "113", x: -14720.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+      //  	{floor: "F1", id: "112", x: -13650.610413159155, y: 4915.703397805907, z: 1219.9998779296875},
+      // 	{floor: "F1", id: "113", x: -14720.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+      // 	{floor: "F1", id: "113", x: -14920.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+      //  	{floor: "F1", id: "112", x: -15220.610413159155, y: 4976.703397805907, z: 1164.9998779296875},
+      // 	{floor: "F1", id: "113", x: -15720.779913367845, y: 4976.75671215763, z: 1164.550537109375}
+      {floor: "F1", id: "113", x: 260, y:1590.0, z: 1000},
+      {floor: "F1", id: "113", x:-17450.0, y:5810.0, z: 1370},
+      {floor: "F1", id: "113", x:-22930.0, y:7110.0, z:1440.0},
+      //  	{floor: "F1", id: "112", x: -13650.610413159155, y: 4915.703397805907, z: 1219.9998779296875},
+      // 	{floor: "F1", id: "113", x: -14720.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+      // 	{floor: "F1", id: "113", x: -14920.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+      //  	{floor: "F1", id: "112", x: -15220.610413159155, y: 4976.703397805907, z: 1164.9998779296875},
+      // 	{floor: "F1", id: "113", x: -15720.779913367845, y: 4976.75671215763, z: 1164.550537109375}
+    ]
+  };
+  /*
+   ** 打开连接
+   */
+  function btn1Click() {
+    view3d.Open();
+  }
+  /*
+   ** 创建路径
+   */
+  function btn2Click() {
+    view3d.CreateRoute(routeData, res => {
+      console.log(res)
+    });
+    isCreated = true;
+
+    // 开始播放路径
+    // btn4Click();
+  }
+  /*
+   ** 创建路径
+   */
+  function btn2_2Click() {
+    var routeData2 = {
+      "style": "sim_dot",  // 路径的样式  sim_arraw, sim_dot, sim_dashed, sim_flash, sim_scan, sim_dot
+      "showloc": true, // 是否显示起始点图标loc
+      "width": 100, // 路径的宽度
+      "speed": 2000,// 路径的播放，默认20   厘米/每秒   米/秒
+      "geom": [
+        //  	{floor: "F1", id: "113", x: -14720.779913367845, y: 4976.75671215763, z: 1164.550537109375},
+        // 	{floor: "F1", id: "112", x: -13650.610413159155, y: 4915.703397805907, z: 1219.9998779296875},
+        // 	{floor: "F1", id: "113", x: -14720.779913367845, y: 4976.75671215763, z: 1164.550537109375}
+        { x: -1580.0, y: -8820.0, z: 0 },
+        { x: -6310.0, y: -17540.0, z: 0},
+        { x: 2210.0, y: -19840.0, z: 0},
+      ]
+    };
+    view3d.CreateRoute(routeData2, res => {
+      console.log(res)
+    });
+    isCreated = true;
+
+    // 开始播放路径
+    // btn4Click();
+  }
+  /*
+   ** 路径样式宽度
+   */
+  function btn3Click() {
+    routeData.width = 1.2;//单位米
+    if(routeData.style == "sim_arraw") {
+      routeData.style = "sim_dot"; // sim_arraw, sim_dot, sim_dashed, sim_flash, sim_scan, sim_dot
+    }
+    else if(routeData.style == "sim_dot") {
+      routeData.style = "sim_dashed";
+    }
+    else if(routeData.style == "sim_dashed") {
+      routeData.style = "sim_flash";
+    }
+    else if(routeData.style == "sim_flash") {
+      routeData.style = "sim_scan";
+    }
+    else {
+      routeData.style = "sim_arraw";
+    }
+
+    view3d.CreateRoute(routeData, res => {
+      console.log(res)
+    });
+    isCreated = true;
+  }
+  /*
+   ** 路径播放
+   */
+  function btn4Click() {
+    if(!isCreated) {
+      alert('请先创建路径');
+      return;
+    }
+    view3d.PlayRoute(res=>{
+      // 返回播放结束节点的位置和索引
+      console.log(res)
+    });
+  }
+  /*
+   ** 暂停播放
+   */
+  function btn5Click() {
+    if(!isCreated) {
+      alert('请先创建路径');
+      return;
+    }
+    view3d.PauseRoute();
+  }
+  /*
+   ** 继续播放
+   */
+  function btn6Click() {
+    if(!isCreated) {
+      alert('请先创建路径');
+      return;
+    }
+    view3d.ResumeRoute(res=>{
+      // 返回播放结束节点的位置和索引
+      console.log(res)
+    });
+  }
+  /*
+   ** 停止播放
+   */
+  function btn7Click() {
+    if(!isCreated) {
+      alert('请先创建路径');
+      return;
+    }
+    view3d.StopRoute();
+  }
+  /*
+   ** 清除
+   */
+  function btn8Click() {
+    isCreated = false;
+    view3d.Clear();
+  }
+</script>
+</body>
+</html>
